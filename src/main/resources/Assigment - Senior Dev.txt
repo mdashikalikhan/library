@@ -1,0 +1,55 @@
+1.  Create a new spring boot project using spring boot initializer :
+	Group:  com.ctos.dummy
+	Artifact: library
+	Version:  1.0.0
+	
+	Dependencies: spring-web spring-data-jpa
+	
+	Use Lombok and Java Streams.
+	
+2.  Create Entity named Library with the following attributes:
+	int libraryId
+	String libraryName
+	
+3.  Create Entity named Aisle with the following attributes:
+	int aisleId
+	String isleName
+	
+4.  Create Entity name Book with the following attribute:
+	int bookId
+	String bookName
+	
+5.  Create One to Many relationship between Library and Aisle.  One library have many aisles.
+
+6.  Create Many to Many relationship between Aisle and Book.  Many aisles will have many book. 
+You might need additional things to add.
+
+Create repository to Library, Aisle , Book
+
+For Library repository - add method to find by like %name% using named query  
+For Aisle repository - add method to find list of aisles based on library 
+For Book repository - add method to find list of books based on aisle 
+
+
+Create a Service - Library Service
+Create a method to get all aisles based on library
+
+9.  Create a method to save library information 
+
+10. Create a method to update library information 
+
+11. Create a method to get all books based on aisle information
+
+ Create a Controller - Library Controller
+
+Add a REST GET method - get all books based on isle name 'NATURAL HISTORY' in the library name 'CENTRAL LIBRARY'
+
+14. Add a REST POST method - save library information
+
+15. Add a REST PUT method - update library information
+
+16. Add REST GET method - get all 
+
+
+
+
