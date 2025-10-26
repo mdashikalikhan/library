@@ -1,16 +1,14 @@
 package com.ctos.dummy.library.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Book {
@@ -22,4 +20,15 @@ public class Book {
     @ManyToMany(mappedBy = "books")
     private Set<Aisle> aisles = new HashSet<>();
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Book)) return false;
+        return bookId != 0 && bookId == ((Book) o).getBookId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(bookId);
+    }
 }

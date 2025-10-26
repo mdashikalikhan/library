@@ -1,15 +1,14 @@
 package com.ctos.dummy.library.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @NamedQuery(
@@ -36,5 +35,17 @@ public class Library {
     public void removeAisle(Aisle aisle) {
         aisles.remove(aisle);
         aisle.setLibrary(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Library)) return false;
+        return libraryId != 0 && libraryId == ((Library) o).getLibraryId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(libraryId);
     }
 }

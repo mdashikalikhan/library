@@ -18,7 +18,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,11 +37,33 @@ public class LibraryService {
             Library library = modelMapper.map(dto, Library.class);
 
             if (library.getAisles() != null) {
-                library.getAisles().forEach(a -> a.setLibrary(library));
+                for (Aisle aisle : library.getAisles()) {
+                    aisle.setLibrary(library);
+
+                    Set<Book> updatedBooks = new HashSet<>();
+                    if(aisle.getBooks()!=null) {
+                        for (Book book : aisle.getBooks()) {
+                            if (book.getBookId() > 0) {
+                                // Existing book
+                                Book existingBook = bookRepository.findById(book.getBookId())
+                                        .orElseThrow(() -> new ResourceNotFoundException(
+                                                ErrorCode.BOOK_NOT_FOUND,
+                                                "Book not found: " + book.getBookName()));
+                                updatedBooks.add(existingBook);
+                            } else {
+                                // New book
+                                updatedBooks.add(bookRepository.save(book)); // ✅ save explicitly
+                            }
+                        }
+                    }
+                    aisle.setBooks(updatedBooks);
+                }
             }
+
 
             Library saved = libraryRepository.save(library);
             return modelMapper.map(saved, LibraryDto.class);
+
         } catch (DataIntegrityViolationException e) {
             throw new DuplicateResourceException(
                     ErrorCode.DUPLICATE_LIBRARY_NAME,
@@ -49,29 +73,57 @@ public class LibraryService {
     }
 
 
+
     @Transactional
     public LibraryDto updateLibrary(int libraryId, LibraryDto dto) {
+
         Library existing = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCode.LIBRARY_NOT_FOUND, "Library not found with id: " + libraryId));
 
+
         existing.setLibraryName(dto.getLibraryName());
 
+
+        existing.getAisles().clear();
+
+
         if (dto.getAisles() != null) {
-            existing.getAisles().clear();
-            dto.getAisles().forEach(aisleDto -> {
+            for (var aisleDto : dto.getAisles()) {
                 Aisle aisle = modelMapper.map(aisleDto, Aisle.class);
                 aisle.setLibrary(existing);
+
+                Set<Book> updatedBooks = new HashSet<>();
+                if (aisle.getBooks() != null) {
+                    for (Book book : aisle.getBooks()) {
+                        if (book.getBookId() > 0) {
+                            // Existing book
+                            Book existingBook = bookRepository.findById(book.getBookId())
+                                    .orElseThrow(() -> new ResourceNotFoundException(
+                                            ErrorCode.BOOK_NOT_FOUND,
+                                            "Book not found: " + book.getBookName()));
+                            updatedBooks.add(existingBook);
+                        } else {
+                            // New book → persist explicitly
+                            updatedBooks.add(bookRepository.save(book));
+                        }
+                    }
+                }
+                aisle.setBooks(updatedBooks);
                 existing.getAisles().add(aisle);
-            });
+            }
         }
+
 
         Library updated = libraryRepository.save(existing);
         return modelMapper.map(updated, LibraryDto.class);
     }
 
 
-    public List<AisleDto> getAllIislesByLibrary(String libraryName) {
+
+
+
+    public List<AisleDto> getAllIslesByLibrary(String libraryName) {
         List<Library> libraries = libraryRepository.findByLike(libraryName);
 
         if (libraries.isEmpty()) {
@@ -101,6 +153,12 @@ public class LibraryService {
         List<Book> books = bookRepository.findByAisle(aisle.getAisleId());
         return books.stream()
                 .map(book -> modelMapper.map(book, BookDto.class))
+                .collect(Collectors.toList());
+    }
+
+    public List<LibraryDto> getAllLibraries() {
+        return libraryRepository.findAll().stream()
+                .map(library -> modelMapper.map(library, LibraryDto.class))
                 .collect(Collectors.toList());
     }
 
